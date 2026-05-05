@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ระบบผู้ปกครอง | SSK Smart Reader</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * { font-family: 'Sarabun', sans-serif; }
+    body { background: linear-gradient(135deg, #f0f7ff 0%, #e0e7ff 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-wrapper { background: white; border-radius: 25px; box-shadow: 0 15px 35px rgba(0, 50, 150, 0.1); width: 100%; max-width: 400px; overflow: hidden; }
+    .login-header { background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%); padding: 40px 20px; text-align: center; color: white; }
+    .login-body { padding: 30px; }
+    .form-control { border-radius: 12px; padding: 15px; font-size: 1.1rem; text-align: center; letter-spacing: 2px; font-weight: bold; border: 2px solid #e9ecef; }
+    .btn-login { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; border-radius: 12px; padding: 15px; font-size: 1.2rem; font-weight: 700; width: 100%; color: white; margin-top: 20px;}
+  </style>
+</head>
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-header">
+      <i class="bi bi-house-heart" style="font-size: 4rem;"></i>
+      <h3 class="fw-bold mt-2 mb-0">ระบบผู้ปกครอง</h3>
+      <p class="text-white-50">SSK Smart Reader</p>
+    </div>
+    
+    <div class="login-body">
+      <form id="loginForm">
+        <p class="text-center text-secondary fw-bold mb-3">กรุณากรอกรหัสนักเรียน</p>
+        <input type="text" class="form-control" id="studentIdInput" placeholder="ระบุรหัส 5 หลัก" required autocomplete="off">
+        <button type="submit" class="btn btn-login" id="btnLogin"><i class="bi bi-search"></i> ตรวจสอบผลการเรียน</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 🚩 เปลี่ยนตรงนี้ให้เป็น URL Web App อันใหม่ล่าสุดจาก Google Script ของคุณนคร
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDt9mCG5oj1rO9oCUcuo4kEN90lSMbRbsDeEh2CDpp1ELW17STtiwkDCOK2OuriPIG/exec";
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnLogin');
+      const stuId = document.getElementById('studentIdInput').value.trim();
+      if(!stuId) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังตรวจสอบ...';
+
+      // ใช้ Fetch API ยิงไปถาม Google Script แทนการใช้ google.script.run
+      fetch(`${GOOGLE_SCRIPT_URL}?action=verifyParent&stuId=${stuId}`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.status === "success") {
+            Swal.fire({
+              icon: 'success', title: 'พบข้อมูล!', text: `ยินดีต้อนรับผู้ปกครองของ ${result.studentName}`, timer: 1500, showConfirmButton: false
+            }).then(() => {
+              // ย้ายไปหน้า Dashboard ของ GitHub พร้อมพกรหัสนักเรียนไปด้วย
+              window.location.href = `dashboard.html?stuId=${result.studentId}`;
+            });
+          } else {
+            Swal.fire('ไม่พบข้อมูล', result.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-search"></i> ตรวจสอบผลการเรียน';
+          }
+        })
+        .catch(err => {
+          Swal.fire('ข้อผิดพลาดเครือข่าย', 'กรุณาลองใหม่อีกครั้ง', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-search"></i> ตรวจสอบผลการเรียน';
+        });
+    });
+  </script>
+</body>
+</html>
