@@ -5,218 +5,352 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ผลการประเมินนักเรียน | SSK Smart Reader</title>
   
+  <!-- นำเข้า Bootstrap, Icons & Chart.js -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- นำเข้า Google Font Sarabun -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
+    /* บังคับใช้ฟอนต์มาตรฐาน Sarabun ทั้งระบบ */
     * { font-family: 'Sarabun', sans-serif !important; }
     body { background-color: #f0f4f8; padding-bottom: 80px; }
     
     .hero-header { background: linear-gradient(135deg, #0d6efd 0%, #4a00e0 100%); padding: 30px 20px 60px; color: white; text-align: center; border-radius: 0 0 40px 40px; box-shadow: 0 10px 30px rgba(13, 110, 253, 0.2); position: relative; }
     .btn-logout { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50px; padding: 5px 15px; color: white; font-size: 0.9rem; backdrop-filter: blur(5px); }
-    .profile-box { background: white; border-radius: 20px; padding: 20px; margin: -40px 20px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; }
+    .profile-box { background: white; border-radius: 20px; padding: 20px; margin: -40px 20px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; position: relative; }
     .stu-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-top: -60px; background-color: #f8f9fa; }
     
     .card-stat { background: white; border-radius: 18px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.04); margin-bottom: 15px; overflow: hidden; }
-    .progress { height: 10px; border-radius: 10px; background-color: #e9ecef; margin-top: 8px; }
+    .progress { height: 12px; border-radius: 10px; background-color: #e9ecef; margin-top: 8px; }
     .pg-read { background: linear-gradient(90deg, #6ea8fe, #0d6efd); }
     .pg-write { background: linear-gradient(90deg, #75b798, #198754); }
     .pg-think { background: linear-gradient(90deg, #ea868f, #dc3545); }
     
     .chart-container { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.04); margin-bottom: 20px; }
-    
-    /* กล่องวิเคราะห์จุดแข็ง/จุดอ่อน */
-    .analysis-card { border-radius: 20px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 5px 10px rgba(0,0,0,0.02); }
-    .analysis-strength { background-color: #eefdf0; border-left: 6px solid #28a745; }
-    .analysis-weakness { background-color: #fff8ee; border-left: 6px solid #fd7e14; }
-    
     .timeline { border-left: 3px solid #dee2e6; margin-left: 15px; padding-left: 20px; padding-top: 5px; }
     .timeline-item { position: relative; margin-bottom: 25px; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.03); border: 1px solid #f1f3f5;}
     .timeline-item::before { content: ''; position: absolute; left: -29px; top: 15px; width: 15px; height: 15px; background: #0d6efd; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2); }
     
-    .btn-port { border: 2px solid #198754; color: #198754; font-weight: bold; border-radius: 12px; padding: 8px 15px; font-size: 0.9rem; background: transparent; text-decoration: none; transition: 0.3s; }
-    .btn-port:hover { background-color: #198754; color: white; }
+    .btn-cert { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border: none; color: #000; font-weight: bold; border-radius: 10px; padding: 6px 15px; font-size: 0.85rem;}
+    .btn-port { border: 2px solid #198754; color: #198754; font-weight: bold; border-radius: 10px; padding: 5px 15px; font-size: 0.85rem; background: transparent; text-decoration: none; display: inline-block; text-align: center;}
     
+    /* 🚩 สไตล์สำหรับกล่องวิเคราะห์อัจฉริยะ (เพิ่มใหม่) */
+    .analysis-container { margin-bottom: 20px; }
+    .analysis-card { border-radius: 15px; padding: 15px; margin-bottom: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+    .analysis-strength { background-color: #e8f5e9; border-left: 5px solid #2e7d32; }
+    .analysis-weakness { background-color: #fff3e0; border-left: 5px solid #ef6c00; }
+    .analysis-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 5px; display: flex; align-items: center; }
+    .analysis-text { font-size: 0.88rem; color: #444; line-height: 1.5; }
+
     #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
   </style>
 </head>
 <body>
 
+  <!-- หน้าจอโหลดข้อมูล -->
   <div id="loader">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
-    <h5 class="mt-3 fw-bold text-primary">กำลังประมวลผลข้อมูล...</h5>
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <h5 class="mt-3 fw-bold text-primary">กำลังดึงข้อมูลนักเรียน...</h5>
   </div>
 
   <div class="hero-header">
     <button class="btn-logout" onclick="logoutParent()"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</button>
-    <h4 class="fw-bold mb-1 mt-2">รายงานสมรรถนะอัจฉริยะ</h4>
+    <h4 class="fw-bold mb-1 mt-2">รายงานผลสมรรถนะอัจฉริยะ</h4>
     <p class="mb-0 text-white-50 small">SSK Smart Reader โรงเรียนบ้านสองสะโกม</p>
   </div>
 
   <div class="profile-box">
-    <img id="stuPhoto" src="https://via.placeholder.com/100" class="stu-photo">
-    <h4 class="fw-bold text-dark mt-3 mb-1" id="stuName">นักเรียน</h4>
+    <img id="stuPhoto" src="https://via.placeholder.com/100?text=Photo" class="stu-photo" alt="Student Photo">
+    <h4 class="fw-bold text-dark mt-3 mb-1" id="stuName">กำลังโหลด...</h4>
     <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold border border-primary border-opacity-25">
-      <i class="bi bi-person-badge-fill me-1"></i> ชั้น <span id="stuClass">-</span>
+      <i class="bi bi-mortarboard-fill me-1"></i> ชั้น <span id="stuClass">-</span>
     </span>
   </div>
 
   <div class="container px-3" id="mainContent" style="display: none;">
-    <!-- คะแนนล่าสุด -->
-    <h6 class="fw-bold text-secondary mb-3 mt-2 text-center">สถิติคะแนนสัปดาห์ล่าสุด</h6>
+    <!-- กล่องแสดงค่าเฉลี่ย 3 ด้านล่าสุด -->
+    <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-bar-chart-fill text-primary"></i> ผลประเมินสัปดาห์ล่าสุด</h6>
     <div class="row g-2 mb-4">
-      <div class="col-4"><div class="card-stat p-3 text-center border-bottom border-primary border-3"><div class="text-primary fs-3 mb-1"><i class="bi bi-book"></i></div><div class="small fw-bold text-muted">อ่าน</div><h4 class="fw-bold mb-0" id="scoreR">-</h4></div></div>
-      <div class="col-4"><div class="card-stat p-3 text-center border-bottom border-success border-3"><div class="text-success fs-3 mb-1"><i class="bi bi-pencil"></i></div><div class="small fw-bold text-muted">เขียน</div><h4 class="fw-bold mb-0" id="scoreW">-</h4></div></div>
-      <div class="col-4"><div class="card-stat p-3 text-center border-bottom border-danger border-3"><div class="text-danger fs-3 mb-1"><i class="bi bi-lightbulb"></i></div><div class="small fw-bold text-muted">คิด</div><h4 class="fw-bold mb-0" id="scoreT">-</h4></div></div>
+      <div class="col-4">
+        <div class="card-stat p-3 text-center border-bottom border-primary border-3">
+          <div class="text-primary fs-3 mb-1"><i class="bi bi-book"></i></div>
+          <div class="small fw-bold text-muted mb-1">การอ่าน</div>
+          <h4 class="fw-bold text-dark mb-0" id="scoreR">-</h4>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card-stat p-3 text-center border-bottom border-success border-3">
+          <div class="text-success fs-3 mb-1"><i class="bi bi-pencil-square"></i></div>
+          <div class="small fw-bold text-muted mb-1">การเขียน</div>
+          <h4 class="fw-bold text-dark mb-0" id="scoreW">-</h4>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card-stat p-3 text-center border-bottom border-danger border-3">
+          <div class="text-danger fs-3 mb-1"><i class="bi bi-lightbulb"></i></div>
+          <div class="small fw-bold text-muted mb-1">การคิด</div>
+          <h4 class="fw-bold text-dark mb-0" id="scoreT">-</h4>
+        </div>
+      </div>
     </div>
 
-    <!-- กล่องวิเคราะห์อัจฉริยะ -->
-    <div id="analysisSection" class="mb-4">
+    <!-- 🚩 ส่วนวิเคราะห์อัจฉริยะ (เพิ่มใหม่) -->
+    <div class="analysis-container" id="analysisSection">
       <div class="analysis-card analysis-strength">
-        <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-2"></i>ทักษะที่โดดเด่น</h6>
-        <div id="txtStrength" class="small text-dark lh-base">กำลังประมวลผล...</div>
+        <div class="analysis-title text-success"><i class="bi bi-star-fill me-2"></i> ทักษะที่โดดเด่น</div>
+        <div class="analysis-text" id="strengthText">กำลังวิเคราะห์ข้อมูล...</div>
       </div>
       <div class="analysis-card analysis-weakness">
-        <h6 class="fw-bold text-warning mb-2" style="color: #d63384 !important;"><i class="bi bi-arrow-up-circle-fill me-2"></i>ทักษะที่ควรเสริม</h6>
-        <div id="txtWeakness" class="small text-dark lh-base">กำลังประมวลผล...</div>
+        <div class="analysis-title text-warning"><i class="bi bi-lightning-charge-fill me-2"></i> ทักษะที่ควรส่งเสริม</div>
+        <div class="analysis-text" id="weaknessText">กำลังวิเคราะห์ข้อมูล...</div>
       </div>
     </div>
 
     <!-- กราฟใยแมงมุม -->
     <div class="chart-container">
-      <h6 class="fw-bold text-dark mb-3 text-center">วิเคราะห์ทักษะ 9 มิติย่อย</h6>
-      <div style="position: relative; height: 280px; width: 100%;"><canvas id="radarChart"></canvas></div>
+      <h6 class="fw-bold text-dark mb-3 text-center">กราฟวิเคราะห์ทักษะ 9 มิติ (ล่าสุด)</h6>
+      <div style="position: relative; height: 260px; width: 100%;">
+        <canvas id="radarChart"></canvas>
+      </div>
     </div>
 
-    <!-- กราฟเส้นพัฒนาการ -->
-    <div class="chart-container border-top border-primary border-4">
-      <h6 class="fw-bold text-dark mb-3 text-center"><i class="bi bi-activity text-primary me-2"></i>แนวโน้มพัฒนาการรายสัปดาห์</h6>
-      <div style="position: relative; height: 230px; width: 100%;"><canvas id="trendChart"></canvas></div>
+    <!-- 🚩 เพิ่มเข้ามาใหม่: กราฟเส้นแสดงแนวโน้มพัฒนาการ -->
+    <div class="chart-container mt-4 border-top border-primary border-4">
+      <h6 class="fw-bold text-dark mb-3 text-center"><i class="bi bi-graph-up-arrow text-primary"></i> แนวโน้มพัฒนาการ 3 ด้าน (ย้อนหลัง)</h6>
+      <div style="position: relative; height: 220px; width: 100%;">
+        <canvas id="trendChart"></canvas>
+      </div>
     </div>
 
-    <!-- ประวัติการบันทึก -->
-    <h6 class="fw-bold text-secondary mt-4 mb-3"><i class="bi bi-clock-history me-2"></i>ประวัติการประเมินย้อนหลัง</h6>
+    <!-- ประวัติการประเมิน -->
+    <h6 class="fw-bold text-secondary mt-4 mb-3"><i class="bi bi-clock-history text-primary"></i> ประวัติการบันทึกคะแนน</h6>
     <div class="timeline" id="timelineContainer"></div>
   </div>
 
   <script>
+    // 🚩 URL Web App ของคุณนคร (ตรวจสอบว่าตรงกับของเดิมหรือไม่)
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDt9mCG5oj1rO9oCUcuo4kEN90lSMbRbsDeEh2CDpp1ELW17STtiwkDCOK2OuriPIG/exec";
-    const SKILLS = ['การถอดรหัสคำ', 'ความคล่องแคล่ว', 'ความเข้าใจเนื้อหา', 'การเขียนสะกดคำ', 'การแต่งประโยค', 'การใช้คลังคำศัพท์', 'การระบุประเด็นสำคัญ', 'การอนุมานเหตุผล', 'การสรุปความ'];
-    let radarChart, trendChart;
+    let myRadarChart;
+    let myTrendChart; // ตัวแปรสำหรับกราฟเส้นใหม่
+    
+    // 🚩 รายชื่อทักษะ 9 มิติย่อย (เพิ่มใหม่)
+    const SKILL_LABELS = ['ถอดรหัสคำ', 'ความคล่องแคล่ว', 'ความเข้าใจเนื้อหา', 'การเขียนสะกดคำ', 'การแต่งประโยค', 'การใช้คลังคำศัพท์', 'การระบุประเด็นสำคัญ', 'การอนุมานเหตุผล', 'การสรุปความ'];
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const stuId = new URLSearchParams(window.location.search).get('stuId');
-      if (!stuId) { window.location.href = "index.html"; return; }
+    document.addEventListener("DOMContentLoaded", function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stuId = urlParams.get('stuId');
+
+      if (!stuId) {
+        window.location.href = "index.html"; 
+        return;
+      }
 
       fetch(`${GOOGLE_SCRIPT_URL}?action=getDashboard&stuId=${stuId}`)
-        .then(res => res.json())
-        .then(res => {
-          if (res.status === "success") { render(res.data); } 
-          else { document.getElementById("loader").innerHTML = `<h5 class="text-danger">${res.message}</h5>`; }
+        .then(response => response.json())
+        .then(result => {
+          if (result.status === "success") {
+            renderDashboard(result.data);
+          } else {
+            showError(result.message);
+          }
         })
-        .catch(err => { document.getElementById("loader").innerHTML = `<h5 class="text-danger">ผิดพลาด: ${err.message}</h5>`; });
+        .catch(err => showError(err.message));
     });
 
-    function render(data) {
+    function showError(msg) {
+      document.getElementById("loader").innerHTML = `
+        <div class="text-center p-4">
+          <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
+          <h5 class="text-danger mt-3 fw-bold">เกิดข้อผิดพลาด</h5>
+          <p class="text-muted">${msg}</p>
+          <button class="btn btn-primary rounded-pill px-4 mt-3 fw-bold" onclick="logoutParent()">กลับไปหน้าล็อกอิน</button>
+        </div>`;
+    }
+
+    function renderDashboard(data) {
       document.getElementById("loader").style.display = "none";
       document.getElementById("mainContent").style.display = "block";
+      
       document.getElementById("stuName").innerText = data.studentName;
       document.getElementById("stuClass").innerText = data.classRoom;
       
-      if (data.photo) {
-        const id = data.photo.match(/[-\w]{25,}/);
-        document.getElementById("stuPhoto").src = id ? `https://drive.google.com/thumbnail?id=${id[0]}&sz=w200-h200` : data.photo;
+      // แปลงลิงก์ภาพ
+      if (data.photo && data.photo.trim() !== "") {
+        let matchId = data.photo.match(/[-\w]{25,}/);
+        if (matchId) {
+          document.getElementById("stuPhoto").src = "https://drive.google.com/thumbnail?id=" + matchId[0] + "&sz=w200-h200";
+        } else {
+          document.getElementById("stuPhoto").src = data.photo; 
+        }
       }
 
       const history = data.history;
-      if (!history || history.length === 0) return;
+      const timeline = document.getElementById("timelineContainer");
+
+      if (!history || history.length === 0) {
+        timeline.innerHTML = `<div class="text-center p-4 bg-white rounded-4 shadow-sm border border-light"><i class="bi bi-inbox fs-1 text-muted"></i><p class="mt-2 text-secondary fw-bold">ยังไม่มีข้อมูลการประเมิน</p></div>`;
+        return;
+      }
 
       const latest = history[0];
       document.getElementById("scoreR").innerText = latest.avgR;
       document.getElementById("scoreW").innerText = latest.avgW;
       document.getElementById("scoreT").innerText = latest.avgT;
 
-      // 1. วิเคราะห์จุดแข็ง/จุดอ่อน
-      const scores = latest.rawScores.map(v => parseFloat(v) || 0);
-      const mapped = scores.map((s, i) => ({ n: SKILLS[i], s: s }));
-      const sorted = [...mapped].sort((a, b) => b.s - a.s);
+      // 🚩 เรียกฟังก์ชันวิเคราะห์ข้อความอัจฉริยะ (เพิ่มใหม่)
+      analyzeSmartText(latest.rawScores);
+
+      // วาดกราฟใยแมงมุม (ล่าสุด)
+      drawRadarChart(latest.rawScores);
       
-      const strong = sorted.filter(x => x.s === sorted[0].s).map(x => x.n).join(", ");
-      const weak = sorted.filter(x => x.s === sorted[sorted.length-1].s).map(x => x.n).join(", ");
+      // 🚩 วาดกราฟเส้นแสดงแนวโน้ม (ประวัติย้อนหลัง)
+      drawTrendChart(history);
 
-      document.getElementById("txtStrength").innerHTML = `น้องทำได้ดีมากในด้าน <b>${strong}</b> (${sorted[0].s}/5) ขอให้นักเรียนรักษามาตรฐานความตั้งใจนี้ไว้นะครับ`;
-      document.getElementById("txtWeakness").innerHTML = `ด้านที่สามารถพัฒนาเพิ่มได้คือ <b>${weak}</b> (${sorted[sorted.length-1].s}/5) คุณพ่อคุณแม่ลองกระตุ้นให้น้องฝึกฝนในจุดนี้เพิ่มขึ้นอีกนิดครับ`;
+      let html = "";
+      history.forEach((rec, index) => {
+        let isLatest = index === 0 ? `<span class="badge bg-danger ms-2">ล่าสุด</span>` : "";
+        let portBtn = rec.portfolio ? `<a href="${rec.portfolio}" target="_blank" class="btn btn-port w-100"><i class="bi bi-image"></i> ดูแฟ้มผลงาน</a>` : "";
+        
+        let pctR = (rec.avgR / 5) * 100;
+        let pctW = (rec.avgW / 5) * 100;
+        let pctT = (rec.avgT / 5) * 100;
 
-      // 2. วาดกราฟ
-      drawRadar(scores);
-      drawTrend(history);
+        html += `
+          <div class="timeline-item">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <div>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill mb-1">สัปดาห์ที่ ${rec.week}</span>
+                ${isLatest}
+                <div class="text-muted small mt-1"><i class="bi bi-calendar2-check"></i> ประเมินเมื่อ: ${rec.date}</div>
+              </div>
+              <div class="text-end">
+                <div class="fs-4 fw-bold text-dark">${rec.totalAvg}</div>
+                <div class="small text-muted">เฉลี่ยรวม</div>
+              </div>
+            </div>
+            
+            <div class="mb-2"><div class="d-flex justify-content-between small fw-bold"><span>การอ่าน</span><span class="text-primary">${rec.avgR}</span></div><div class="progress"><div class="progress-bar pg-read" style="width: ${pctR}%"></div></div></div>
+            <div class="mb-2"><div class="d-flex justify-content-between small fw-bold"><span>การเขียน</span><span class="text-success">${rec.avgW}</span></div><div class="progress"><div class="progress-bar pg-write" style="width: ${pctW}%"></div></div></div>
+            <div class="mb-3"><div class="d-flex justify-content-between small fw-bold"><span>การคิด</span><span class="text-danger">${rec.avgT}</span></div><div class="progress"><div class="progress-bar pg-think" style="width: ${pctT}%"></div></div></div>
 
-      // 3. วาดไทม์ไลน์
-      document.getElementById("timelineContainer").innerHTML = history.map((r, i) => `
-        <div class="timeline-item">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill border border-primary border-opacity-25 px-3">สัปดาห์ที่ ${r.week} ${i===0?'<span class="text-danger"> (ล่าสุด)</span>':''}</span>
-            <span class="fw-bold text-dark">${r.totalAvg}</span>
+            <div class="row g-2 mt-3">
+              <div class="col-12">${portBtn}</div>
+            </div>
           </div>
-          <div class="text-muted small mb-3">วันที่ประเมิน: ${r.date}</div>
-          <div class="row g-2">
-             <div class="col-4 small fw-bold text-primary">อ่าน: ${r.avgR}</div>
-             <div class="col-4 small fw-bold text-success">เขียน: ${r.avgW}</div>
-             <div class="col-4 small fw-bold text-danger">คิด: ${r.avgT}</div>
-          </div>
-          ${r.portfolio ? `<div class="mt-3 text-center"><a href="${r.portfolio}" target="_blank" class="btn btn-port w-100"><i class="bi bi-eye me-2"></i>ดูผลงานนักเรียน</a></div>` : ''}
-        </div>
-      `).join("");
+        `;
+      });
+      timeline.innerHTML = html;
     }
 
-    function drawRadar(data) {
-      const ctx = document.getElementById('radarChart');
-      if (radarChart) radarChart.destroy();
-      radarChart = new Chart(ctx, {
+    // 🚩 ฟังก์ชันวิเคราะห์จุดแข็งและจุดควรเสริม (เพิ่มใหม่)
+    function analyzeSmartText(scores) {
+      const cleanScores = scores.map(v => (v === "" || isNaN(v)) ? 0 : parseFloat(v));
+      
+      // หาค่าสูงสุดและต่ำสุด
+      let maxVal = Math.max(...cleanScores);
+      let minVal = Math.min(...cleanScores);
+      
+      // ดึงชื่อทักษะที่มีค่าสูงสุดและต่ำสุด (รองรับกรณีมีหลายทักษะเท่ากัน)
+      let strengths = SKILL_LABELS.filter((_, i) => cleanScores[i] === maxVal);
+      let weaknesses = SKILL_LABELS.filter((_, i) => cleanScores[i] === minVal);
+      
+      // แสดงผลบทวิเคราะห์
+      document.getElementById('strengthText').innerHTML = `น้องทำได้ดีเยี่ยมในทักษะ <b>${strengths.join(' และ ')}</b> ขอให้รักษามาตรฐานความตั้งใจนี้ไว้นะครับ`;
+      document.getElementById('weaknessText').innerHTML = `ควรส่งเสริมเพิ่มเติมในด้าน <b>${weaknesses.join(' และ ')}</b> เพื่อเสริมสร้างพื้นฐานการอ่านเขียนให้แข็งแกร่งยิ่งขึ้นครับ`;
+    }
+
+    function drawRadarChart(dataArr) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if(myRadarChart) myRadarChart.destroy();
+      const cleanData = dataArr.map(v => (v === "" || isNaN(v)) ? 0 : parseFloat(v));
+
+      myRadarChart = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: ['ถอดรหัส', 'คล่องแคล่ว', 'เข้าใจ', 'เขียนถูก', 'ประโยค', 'คลังคำ', 'ระบุประเด็น', 'อนุมาน', 'สรุปความ'],
           datasets: [{
-            data: data,
-            backgroundColor: 'rgba(13, 110, 253, 0.15)', borderColor: '#0d6efd', borderWidth: 2,
+            label: 'คะแนนล่าสุด', data: cleanData, 
+            backgroundColor: 'rgba(13, 110, 253, 0.15)', borderColor: '#0d6efd',
             pointBackgroundColor: ['#0d6efd','#0d6efd','#0d6efd','#198754','#198754','#198754','#dc3545','#dc3545','#dc3545'],
-            pointRadius: 4
+            pointRadius: 4, borderWidth: 2
           }]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          scales: { r: { min:0, max:5, ticks: { display: false, stepSize: 1 }, pointLabels: { font: { family: 'Sarabun', size: 10, weight: 'bold' } } } },
+          scales: {
+            r: { 
+              suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1, display: false },
+              pointLabels: { font: { family: 'Sarabun', size: 10, weight: 'bold' }, color: (c) => c.index < 3 ? '#0d6efd' : (c.index < 6 ? '#198754' : '#dc3545') }
+            }
+          },
           plugins: { legend: { display: false } }
         }
       });
     }
 
-    function drawTrend(history) {
-      const ctx = document.getElementById('trendChart');
-      if (trendChart) trendChart.destroy();
-      const chrono = [...history].reverse();
-      trendChart = new Chart(ctx, {
+    // 🚩 ฟังก์ชันใหม่: สร้างกราฟเส้น
+    function drawTrendChart(historyArr) {
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      if(myTrendChart) myTrendChart.destroy();
+
+      // สลับข้อมูลจาก อดีต -> ปัจจุบัน (เรียงจากสัปดาห์น้อยไปมาก)
+      const chronoHistory = [...historyArr].reverse();
+
+      const labels = chronoHistory.map(item => 'สัปดาห์ ' + item.week);
+      const dataR = chronoHistory.map(item => parseFloat(item.avgR) || 0);
+      const dataW = chronoHistory.map(item => parseFloat(item.avgW) || 0);
+      const dataT = chronoHistory.map(item => parseFloat(item.avgT) || 0);
+
+      myTrendChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: chrono.map(h => 'ส.' + h.week),
+          labels: labels,
           datasets: [
-            { label: 'อ่าน', data: chrono.map(h => h.avgR), borderColor: '#0d6efd', tension: 0.3, pointRadius: 3 },
-            { label: 'เขียน', data: chrono.map(h => h.avgW), borderColor: '#198754', tension: 0.3, pointRadius: 3 },
-            { label: 'คิด', data: chrono.map(h => h.avgT), borderColor: '#dc3545', tension: 0.3, pointRadius: 3 }
+            {
+              label: 'การอ่าน', data: dataR,
+              borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)',
+              borderWidth: 2, tension: 0.3, pointBackgroundColor: '#0d6efd'
+            },
+            {
+              label: 'การเขียน', data: dataW,
+              borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)',
+              borderWidth: 2, tension: 0.3, pointBackgroundColor: '#198754'
+            },
+            {
+              label: 'การคิด', data: dataT,
+              borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)',
+              borderWidth: 2, tension: 0.3, pointBackgroundColor: '#dc3545'
+            }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          scales: { y: { min:0, max:5, ticks: { font: { family: 'Sarabun' } } }, x: { ticks: { font: { family: 'Sarabun', size: 10 } } } },
-          plugins: { legend: { position: 'bottom', labels: { font: { family: 'Sarabun', size: 11, weight: 'bold' }, boxWidth: 10 } } }
+          scales: {
+            y: { 
+              min: 0, max: 5, 
+              ticks: { stepSize: 1, font: { family: 'Sarabun' } } 
+            },
+            x: { 
+              ticks: { font: { family: 'Sarabun', size: 10 } } 
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { family: 'Sarabun', size: 12, weight: 'bold' }, usePointStyle: true }
+            }
+          }
         }
       });
     }
 
-    function logoutParent() { window.location.href = "index.html"; }
+    function logoutParent() {
+      window.location.href = "index.html";
+    }
   </script>
 </body>
 </html>
