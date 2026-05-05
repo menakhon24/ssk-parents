@@ -147,7 +147,16 @@
       
       document.getElementById("stuName").innerText = data.studentName;
       document.getElementById("stuClass").innerText = data.classRoom;
-      if(data.photo) document.getElementById("stuPhoto").src = data.photo;
+      // แปลงลิงก์ Google Drive ให้เป็น Direct Link เพื่อแก้ปัญหาภาพแตก
+      if (data.photo && data.photo.trim() !== "") {
+        let matchId = data.photo.match(/[-\w]{25,}/);
+        if (matchId) {
+          // ดึงภาพขนาดเล็ก (Thumbnail) ช่วยให้เว็บโหลดเร็วขึ้น
+          document.getElementById("stuPhoto").src = "https://drive.google.com/thumbnail?id=" + matchId[0] + "&sz=w200-h200";
+        } else {
+          document.getElementById("stuPhoto").src = data.photo; // กรณีเป็นลิงก์รูปจากเว็บอื่น
+        }
+      }
 
       const history = data.history;
       const timeline = document.getElementById("timelineContainer");
